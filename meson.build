@@ -173,6 +173,7 @@ plugins = [
   'ToTape5',
   'ToTape6',
   'TPDFDither',
+  'Tremolo',
   'TransDesk',
   'Tube',
   'Tube2',

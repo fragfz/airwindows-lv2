@@ -776,6 +776,11 @@
 	lv2:binary <TPDFDither@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
 	rdfs:seeAlso <TPDFDither.ttl> .
 
+<https://hannesbraun.net/ns/lv2/airwindows/tremolo>
+	a lv2:Plugin ;
+	lv2:binary <Tremolo@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
+	rdfs:seeAlso <Tremolo.ttl> .
+
 <https://hannesbraun.net/ns/lv2/airwindows/transdesk>
 	a lv2:Plugin ;
 	lv2:binary <TransDesk@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
