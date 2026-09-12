@@ -765,6 +765,10 @@
 	a lv2:Plugin ;
 	lv2:binary <TapeDelay2@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
 	rdfs:seeAlso <TapeDelay2.ttl> .
+<https://hannesbraun.net/ns/lv2/airwindows/tapehack2>
+	a lv2:Plugin ;
+	lv2:binary <TapeHack2@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
+	rdfs:seeAlso <TapeHack2.ttl> .
 
 <https://hannesbraun.net/ns/lv2/airwindows/totape5>
 	a lv2:Plugin ;
@@ -780,6 +784,11 @@
 	a lv2:Plugin ;
 	lv2:binary <TPDFDither@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
 	rdfs:seeAlso <TPDFDither.ttl> .
+
+<https://hannesbraun.net/ns/lv2/airwindows/tremolo>
+	a lv2:Plugin ;
+	lv2:binary <Tremolo@CMAKE_SHARED_LIBRARY_SUFFIX@> ;
+	rdfs:seeAlso <Tremolo.ttl> .
 
 <https://hannesbraun.net/ns/lv2/airwindows/transdesk>
 	a lv2:Plugin ;
