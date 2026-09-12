@@ -170,6 +170,7 @@ plugins = [
   'StarChild',
   'SubsOnly',
   'TapeHack',
+  'TapeDelay2',
   'ToTape5',
   'ToTape6',
   'TPDFDither',
