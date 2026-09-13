@@ -262,7 +262,7 @@ static void run(LV2_Handle instance, uint32_t sampleCount)
 		self->fpdL ^= self->fpdL << 13;
 		self->fpdL ^= self->fpdL >> 17;
 		self->fpdL ^= self->fpdL << 5;
-		inputSampleL += ((double(self->fpdL) - uint32_t(0x7fffffff)) * 5.5e-36l * pow(2, expon + 62));
+		inputSampleL += (((double) self->fpdL - (uint32_t) 0x7fffffff) * 5.5e-36l * pow(2, expon + 62));
 		// end 32 bit stereo floating point dither
 
 		out1[i] = inputSampleL;
