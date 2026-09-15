@@ -72,4 +72,14 @@
 		lv2:minimum 0.0 ;
 		lv2:maximum 1.0 ;
 		lv2:portProperty pprops:hasStrictBounds
+	] , [
+		a lv2:ControlPort ,
+			lv2:InputPort ;
+		lv2:index 6 ;
+		lv2:symbol "bias" ;
+		lv2:name "BIAS" ;
+		lv2:default 0.5 ;
+		lv2:minimum 0.0 ;
+		lv2:maximum 1.0 ;
+		lv2:portProperty pprops:hasStrictBounds
 	] .

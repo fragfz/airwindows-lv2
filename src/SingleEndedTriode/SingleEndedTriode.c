@@ -12,7 +12,8 @@ typedef enum {
 	TRIODE = 2,
 	CLASS_AB = 3,
 	CLASS_B = 4,
-	DRY_WET = 5
+	DRY_WET = 5,
+	BIAS = 6
 } PortIndex;
 
 typedef struct {
@@ -22,8 +23,7 @@ typedef struct {
 	const float* classAB;
 	const float* classB;
 	const float* dryWet;
-
-	double postsine;
+	const float* bias;
 	uint32_t fpdL;
 } SingleEndedTriode;
 
@@ -60,14 +60,15 @@ static void connect_port(LV2_Handle instance, uint32_t port, void* data)
 		case DRY_WET:
 			singleEndedTriode->dryWet = (const float*) data;
 			break;
+		case BIAS:
+			singleEndedTriode->bias = (const float*) data;
+			break;
 	}
 }
 
 static void activate(LV2_Handle instance)
 {
 	SingleEndedTriode* singleEndedTriode = (SingleEndedTriode*) instance;
-	singleEndedTriode->postsine = sin(0.5);
-
 	singleEndedTriode->fpdL = 1.0;
 	while (singleEndedTriode->fpdL < 16386) singleEndedTriode->fpdL = rand() * UINT32_MAX;
 }
@@ -84,6 +85,8 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 	double softcrossover = pow(*singleEndedTriode->classAB, 3) / 8.0;
 	double hardcrossover = pow(*singleEndedTriode->classB, 7) / 8.0;
 	double wet = *singleEndedTriode->dryWet;
+	double bias = *singleEndedTriode->bias;
+	double postsine = sin(bias);
 
 	while (sampleFrames-- > 0) {
 		double inputSampleL = *in1;
@@ -92,7 +95,7 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 
 		if (triode > 0.0) {
 			inputSampleL *= intensity;
-			inputSampleL -= 0.5;
+			inputSampleL -= bias;
 
 			double bridgerectifier = fabs(inputSampleL);
 			if (bridgerectifier > 1.57079633) bridgerectifier = 1.57079633;
@@ -100,7 +103,7 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 			if (inputSampleL > 0) inputSampleL = bridgerectifier;
 			else inputSampleL = -bridgerectifier;
 
-			inputSampleL += singleEndedTriode->postsine;
+			inputSampleL += postsine;
 			inputSampleL /= intensity;
 		}
 
