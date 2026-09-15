@@ -161,6 +161,7 @@ plugins = [
   'ShortBuss',
   'SideDull',
   'Sidepass',
+  'SingleEndedTriode',
   'Sinew',
   'Slew',
   'SlewOnly',
