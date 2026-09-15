@@ -8,18 +8,16 @@
 
 typedef enum {
 	INPUT_L = 0,
-	INPUT_R = 1,
-	OUTPUT_L = 2,
-	OUTPUT_R = 3,
-	TRIODE = 4,
-	CLASS_AB = 5,
-	CLASS_B = 6,
-	DRY_WET = 7
+	OUTPUT_L = 1,
+	TRIODE = 2,
+	CLASS_AB = 3,
+	CLASS_B = 4,
+	DRY_WET = 5
 } PortIndex;
 
 typedef struct {
-	const float* input[2];
-	float* output[2];
+	const float* input;
+	float* output;
 	const float* triode;
 	const float* classAB;
 	const float* classB;
@@ -27,7 +25,6 @@ typedef struct {
 
 	double postsine;
 	uint32_t fpdL;
-	uint32_t fpdR;
 } SingleEndedTriode;
 
 static LV2_Handle instantiate(
@@ -46,16 +43,10 @@ static void connect_port(LV2_Handle instance, uint32_t port, void* data)
 
 	switch ((PortIndex) port) {
 		case INPUT_L:
-			singleEndedTriode->input[0] = (const float*) data;
-			break;
-		case INPUT_R:
-			singleEndedTriode->input[1] = (const float*) data;
+			singleEndedTriode->input = (const float*) data;
 			break;
 		case OUTPUT_L:
-			singleEndedTriode->output[0] = (float*) data;
-			break;
-		case OUTPUT_R:
-			singleEndedTriode->output[1] = (float*) data;
+			singleEndedTriode->output = (float*) data;
 			break;
 		case TRIODE:
 			singleEndedTriode->triode = (const float*) data;
@@ -79,18 +70,14 @@ static void activate(LV2_Handle instance)
 
 	singleEndedTriode->fpdL = 1.0;
 	while (singleEndedTriode->fpdL < 16386) singleEndedTriode->fpdL = rand() * UINT32_MAX;
-	singleEndedTriode->fpdR = 1.0;
-	while (singleEndedTriode->fpdR < 16386) singleEndedTriode->fpdR = rand() * UINT32_MAX;
 }
 
 static void run(LV2_Handle instance, uint32_t sampleFrames)
 {
 	SingleEndedTriode* singleEndedTriode = (SingleEndedTriode*) instance;
 
-	const float* in1 = singleEndedTriode->input[0];
-	const float* in2 = singleEndedTriode->input[1];
-	float* out1 = singleEndedTriode->output[0];
-	float* out2 = singleEndedTriode->output[1];
+	const float* in1 = singleEndedTriode->input;
+	float* out1 = singleEndedTriode->output;
 	double intensity = pow(*singleEndedTriode->triode, 2) * 8.0;
 	double triode = intensity;
 	intensity += 0.001;
@@ -100,17 +87,12 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 
 	while (sampleFrames-- > 0) {
 		double inputSampleL = *in1;
-		double inputSampleR = *in2;
 		if (fabs(inputSampleL) < 1.18e-23) inputSampleL = singleEndedTriode->fpdL * 1.18e-17;
-		if (fabs(inputSampleR) < 1.18e-23) inputSampleR = singleEndedTriode->fpdR * 1.18e-17;
 		double drySampleL = inputSampleL;
-		double drySampleR = inputSampleR;
 
 		if (triode > 0.0) {
 			inputSampleL *= intensity;
-			inputSampleR *= intensity;
 			inputSampleL -= 0.5;
-			inputSampleR -= 0.5;
 
 			double bridgerectifier = fabs(inputSampleL);
 			if (bridgerectifier > 1.57079633) bridgerectifier = 1.57079633;
@@ -118,16 +100,8 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 			if (inputSampleL > 0) inputSampleL = bridgerectifier;
 			else inputSampleL = -bridgerectifier;
 
-			bridgerectifier = fabs(inputSampleR);
-			if (bridgerectifier > 1.57079633) bridgerectifier = 1.57079633;
-			bridgerectifier = sin(bridgerectifier);
-			if (inputSampleR > 0) inputSampleR = bridgerectifier;
-			else inputSampleR = -bridgerectifier;
-
 			inputSampleL += singleEndedTriode->postsine;
-			inputSampleR += singleEndedTriode->postsine;
 			inputSampleL /= intensity;
-			inputSampleR /= intensity;
 		}
 
 		if (softcrossover > 0.0) {
@@ -136,12 +110,6 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 			if (bridgerectifier < 0.0) bridgerectifier = 0;
 			if (inputSampleL > 0.0) inputSampleL = bridgerectifier;
 			else inputSampleL = -bridgerectifier;
-
-			bridgerectifier = fabs(inputSampleR);
-			if (bridgerectifier > 0.0) bridgerectifier -= (softcrossover * (bridgerectifier + sqrt(bridgerectifier)));
-			if (bridgerectifier < 0.0) bridgerectifier = 0;
-			if (inputSampleR > 0.0) inputSampleR = bridgerectifier;
-			else inputSampleR = -bridgerectifier;
 		}
 
 		if (hardcrossover > 0.0) {
@@ -150,17 +118,10 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 			if (bridgerectifier < 0.0) bridgerectifier = 0.0;
 			if (inputSampleL > 0.0) inputSampleL = bridgerectifier;
 			else inputSampleL = -bridgerectifier;
-
-			bridgerectifier = fabs(inputSampleR);
-			bridgerectifier -= hardcrossover;
-			if (bridgerectifier < 0.0) bridgerectifier = 0.0;
-			if (inputSampleR > 0.0) inputSampleR = bridgerectifier;
-			else inputSampleR = -bridgerectifier;
 		}
 
 		if (wet != 1.0) {
 			inputSampleL = (inputSampleL * wet) + (drySampleL * (1.0 - wet));
-			inputSampleR = (inputSampleR * wet) + (drySampleR * (1.0 - wet));
 		}
 
 		int expon;
@@ -169,19 +130,11 @@ static void run(LV2_Handle instance, uint32_t sampleFrames)
 		singleEndedTriode->fpdL ^= singleEndedTriode->fpdL >> 17;
 		singleEndedTriode->fpdL ^= singleEndedTriode->fpdL << 5;
 		inputSampleL += (((double) singleEndedTriode->fpdL - (uint32_t) 0x7fffffff) * 5.5e-36l * pow(2, expon + 62));
-		frexpf((float) inputSampleR, &expon);
-		singleEndedTriode->fpdR ^= singleEndedTriode->fpdR << 13;
-		singleEndedTriode->fpdR ^= singleEndedTriode->fpdR >> 17;
-		singleEndedTriode->fpdR ^= singleEndedTriode->fpdR << 5;
-		inputSampleR += (((double) singleEndedTriode->fpdR - (uint32_t) 0x7fffffff) * 5.5e-36l * pow(2, expon + 62));
 
 		*out1 = (float) inputSampleL;
-		*out2 = (float) inputSampleR;
 
 		in1++;
-		in2++;
 		out1++;
-		out2++;
 	}
 }
 
